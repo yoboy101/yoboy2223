@@ -23,7 +23,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from config import KNOWLEDGE_DIR
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
 OLLAMA_MODEL = "llama3.2"
 
 
@@ -60,6 +60,14 @@ def describe(profile):
     return (f"Grade {profile['grade']} learner, home language {profile['language']}. "
             f"Handwriting screen: {profile['reversal_rate']:.0%} of letters reversed, "
             f"{profile['corrected_rate']:.0%} corrected, risk level {profile['risk']}.")
+
+
+def ollama_available():
+    """Quick check so the demo does not wait on a connection to a server that is not running."""
+    try:
+        return requests.get(OLLAMA_URL.replace("/api/generate", "/api/tags"), timeout=0.5).ok
+    except requests.RequestException:
+        return False
 
 
 def generate_with_ollama(profile, passages, timeout=120):
@@ -114,12 +122,15 @@ def tutor(profile, k=6):
     seen = {(p["source"], p["text"]) for p in passages}
     passages += [p for p in kb.search(f"{profile['language']} home language South Africa CAPS referral", k=2)
                  if (p["source"], p["text"]) not in seen][:1]
-    try:
-        text = generate_with_ollama(profile, passages)
-        engine = f"Ollama ({OLLAMA_MODEL})"
-    except requests.RequestException:
+    text, engine = None, "template fallback (Ollama not running)"
+    if ollama_available():
+        try:
+            text = generate_with_ollama(profile, passages)
+            engine = f"Ollama ({OLLAMA_MODEL})"
+        except requests.RequestException:
+            engine = "template fallback (Ollama request failed)"
+    if text is None:
         text = generate_with_template(profile, passages)
-        engine = "template fallback (Ollama not running)"
     return {"engine": engine, "passages": passages, "text": text}
 
 

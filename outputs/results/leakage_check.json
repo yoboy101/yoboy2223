@@ -1,0 +1,15 @@
+{
+  "sample": 3000,
+  "threshold_mad": 6.0,
+  "near_copy_share": 0.014,
+  "acc_near_copies": 0.9285714285714286,
+  "acc_novel": 0.9100743745774171,
+  "near_copy_share_by_class": {
+    "Normal": 0.005797101449275362,
+    "Reversal": 0.029233870967741934,
+    "Corrected": 0.007194244604316547
+  },
+  "median_distance_test": 22.03955078125,
+  "median_distance_val": 16.3466796875,
+  "val_near_copy_share": 0.17466666666666666
+}

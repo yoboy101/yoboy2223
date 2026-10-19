@@ -40,20 +40,33 @@ def main():
     correct = predict_proba(model, Xs).argmax(1) == ys
 
     near = nearest < NEAR_COPY
+
+    # Same check for the validation split, which was drawn from the same Train folder as the training data.
+    vidx = rng.choice(len(data["X_val"]), SAMPLE, replace=False)
+    Xv = data["X_val"][vidx]
+    nearest_val = np.empty(SAMPLE)
+    for i in range(0, SAMPLE, 250):
+        q = torch.from_numpy(Xv[i: i + 250].reshape(-1, 1024)).float()
+        nearest_val[i: i + 250] = torch.cdist(q, train, p=1).min(1).values.numpy() / 1024
+
     out = {"sample": SAMPLE, "threshold_mad": NEAR_COPY, "near_copy_share": float(near.mean()),
            "acc_near_copies": float(correct[near].mean()) if near.any() else None,
            "acc_novel": float(correct[~near].mean()) if (~near).any() else None,
-           "near_copy_share_by_class": {c: float(near[ys == k].mean()) for k, c in enumerate(CLASSES)}}
+           "near_copy_share_by_class": {c: float(near[ys == k].mean()) for k, c in enumerate(CLASSES)},
+           "median_distance_test": float(np.median(nearest)),
+           "median_distance_val": float(np.median(nearest_val)),
+           "val_near_copy_share": float((nearest_val < NEAR_COPY).mean())}
     (RESULTS_DIR / "leakage_check.json").write_text(json.dumps(out, indent=2))
     print(json.dumps(out, indent=2))
 
     fig, ax = plt.subplots(figsize=(6.5, 3.8))
+    ax.hist(nearest_val, bins=50, range=(0, 40), alpha=0.55, label="validation (same Train folder)", color="#999999")
     for k, c in enumerate(CLASSES):
-        ax.hist(nearest[ys == k], bins=50, range=(0, 40), alpha=0.6, label=c)
+        ax.hist(nearest[ys == k], bins=50, range=(0, 40), alpha=0.6, label=f"test: {c}")
     ax.axvline(NEAR_COPY, color="black", ls="--", lw=1, label="near-copy threshold")
     ax.set_xlabel("Distance to closest training image (mean |pixel difference|)")
-    ax.set_ylabel("Test images")
-    ax.set_title(f"Test-to-train similarity ({SAMPLE} sampled test images)")
+    ax.set_ylabel("Images")
+    ax.set_title(f"Distance to the closest training image ({SAMPLE} sampled images per split)")
     ax.legend()
     fig.tight_layout()
     fig.savefig(FIGURES_DIR / "leakage_check.png", dpi=150)

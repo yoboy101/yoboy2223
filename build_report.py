@@ -206,7 +206,7 @@ P("Dyslexia is a common specific learning difficulty, yet in South Africa most l
   "diagnostic tool; its limitations and the steps needed before real use are discussed.")
 
 # ----------------------------------------------------------------- 1 introduction
-H("1. The African challenge and our case")
+H("The African challenge and our case")
 P("Developmental dyslexia is a neurobiological difficulty with accurate and fluent word reading and spelling. "
   "A global meta-analysis puts its prevalence among primary-school children at about 7% (Yang et al., 2022); "
   "in a class of 40, two or three learners are likely to be affected. Early support matters: structured, "
@@ -240,7 +240,7 @@ P("Isa et al. (2019) built the dataset we use and trained a CNN to separate norm
   "South African classroom.")
 
 # ----------------------------------------------------------------- 2 dataset
-H("2. Dataset source (step 1)")
+H("Dataset source (step 1)")
 table(["Attribute", "Detail"], [
     ["Name", "Dyslexia Handwriting Dataset"],
     ["Source", "Kaggle: kaggle.com/datasets/drizasazanitaisa/dyslexia-handwriting-dataset"],
@@ -258,7 +258,7 @@ P("Why this dataset. Our first prototype (shown in the earlier presentation) use
   "subtypes, which is close to guessing. The handwriting dataset is real, public, large and visual, which makes it "
   "suitable for a deep-learning model and matches a task teachers already do: look at a child's writing.")
 
-H("3. Contents of the dataset and objectives (step 2)")
+H("Contents of the dataset and objectives (step 2)")
 raw_counts = [["Train", "39,334", "46,781", "65,534", "151,649"], ["Test", "19,557", "17,882", "19,284", "56,723"]]
 table(["Folder", "Normal", "Reversal", "Corrected", "Total"], raw_counts, [3, 3, 3, 3, 3.5],
       caption="Images per class in the downloaded dataset")
@@ -279,7 +279,7 @@ bullets([
 ])
 
 # ----------------------------------------------------------------- 3 preprocessing
-H("4. Preprocessing and train / validation / test split (step 3)")
+H("Preprocessing and train / validation / test split (step 3)")
 P("All images go through the same function (common.preprocess_array) during training and in the demo app:")
 bullets([
     ("Grayscale. ", "Files mix 8-bit grayscale, RGB and 1-bit modes; all are converted to 8-bit grayscale."),
@@ -319,7 +319,7 @@ P("Class imbalance is moderate, so the loss function is weighted by inverse clas
   "which would corrupt the very labels the model must learn.")
 
 # ----------------------------------------------------------------- 4 model
-H("5. Model choice and implementation (step 4)")
+H("Model choice and implementation (step 4)")
 P("Why a CNN. The task is image classification where the decisive information is local stroke shape and "
   "orientation. Convolutional layers learn such local patterns with few parameters and are robust to small "
   "shifts, which is why CNNs dominate handwriting recognition. A CNN is also small enough to run on a school laptop "
@@ -344,7 +344,7 @@ P("Baselines. To show what the CNN adds, two classical models were trained on th
   "regression on 100 principal components of the pixels, and a random forest with 200 trees on the raw pixels.")
 
 # ----------------------------------------------------------------- 5 tuning
-H("6. Hyperparameter experiments (step 5)")
+H("Hyperparameter experiments (step 5)")
 P("To keep tuning affordable on a CPU, each configuration was trained for 3 epochs on a fixed random 15% of the "
   "training split and scored on the full validation split. One setting was changed at a time around a sensible "
   "default (32 base filters, dropout 0.3, learning rate 1e-3, batch 256, augmentation on), and one run switched "
@@ -377,7 +377,7 @@ P(f"Selected configuration: {best_cfg['width']} base filters, dropout {best_cfg[
   "so differences of about one F1 point are within run-to-run noise.")
 
 # ----------------------------------------------------------------- 6 training graphs
-H("7. Training graphs (step 6)")
+H("Training graphs (step 6)")
 P(f"The final model was trained on the full training split ({splits.loc['train'].sum():,} images) with the "
   f"selected configuration for up to 6 epochs (about 6-7 minutes per epoch on a CPU). The best validation macro-F1 ({best_epoch.val_macro_f1:.4f}, "
   f"accuracy {pct(best_epoch.val_acc)}) was reached at epoch {int(best_epoch.epoch)} of {len(history)}.")
@@ -387,7 +387,18 @@ table(["Epoch", "Train loss", "Train acc", "Val loss", "Val acc", "Val macro-F1"
       [[int(r.epoch), f"{r.train_loss:.4f}", pct(r.train_acc), f"{r.val_loss:.4f}", pct(r.val_acc),
         f"{r.val_macro_f1:.4f}", f"{r.seconds:.0f}"] for r in history.itertuples()],
       [1.5, 2.2, 2.2, 2.2, 2.2, 2.5, 2], caption="Per-epoch training log of the final model", font=8.5)
-# __TRAINING_ANALYSIS__
+P("Reading the curves:", bold_lead=None)
+bullets([
+    ("Steady convergence. ", "Training and validation loss fall together every epoch, and the learning rate decays "
+     "smoothly to zero under the cosine schedule. Early stopping was never triggered within the 6-epoch budget; "
+     "the last epoch was the best."),
+    ("No overfitting within the budget. ", f"Validation accuracy ({pct(best_epoch.val_acc)}) stays at or above "
+     f"training accuracy ({pct(history.iloc[-1].train_acc)}). This is expected here: dropout and batch "
+     "normalisation are active while the training accuracy is measured, and, as Section 8 shows, many validation "
+     "letters are close copies of training letters, which makes the validation set easier than the test set."),
+    ("Diminishing returns. ", "The gain from epoch 5 to epoch 6 is small, so more epochs would add little on this "
+     "data; a larger gain is more likely from more diverse data than from longer training."),
+])
 
 # ----------------------------------------------------------------- 7 test results
 H("8. Results on the test set (step 7)")
@@ -415,39 +426,75 @@ P(f"For screening, Reversal and Corrected can be merged into a single dyslexia-i
   f"and accuracy {pct(bi['accuracy'])} at a 0.5 threshold.")
 figure("misclassified.png", "The 30 test errors the CNN was most confident about (T = true class, P = predicted)", 15)
 if leak:
-    H("How much of the test set is new to the model?", 2)
-    P(f"Exact duplicates were removed, but augmented near-copies are not byte-identical. For {leak['sample']:,} "
-      "random test images we found the closest training image (mean absolute pixel difference on the 0-255 scale). "
-      f"{pct(leak['near_copy_share'])} of the sampled test images have a training image within {leak['threshold_mad']:g} "
-      "grey levels, i.e. a near-copy. By class: "
-      + ", ".join(f"{c} {pct(v)}" for c, v in leak["near_copy_share_by_class"].items()) + ". "
-      f"The CNN is {pct(leak['acc_near_copies'])} accurate on near-copies and {pct(leak['acc_novel'])} on the "
-      "remaining, genuinely new letters.")
-    figure("leakage_check.png", "Distance from each sampled test image to its closest training image, by class", 12.5)
-# __RESULTS_ANALYSIS__
+    H("Why is validation accuracy higher than test accuracy?", 2)
+    P(f"The CNN scores {pct(best_epoch.val_acc)} on validation but {pct(test['test_acc'])} on test. To find out why, "
+      f"we took {leak['sample']:,} random validation and {leak['sample']:,} random test images and measured the distance "
+      "to the closest training image (mean absolute pixel difference, 0-255 scale). Exact duplicates had already been "
+      "removed, but augmented near-copies are not byte-identical. "
+      f"{pct(leak['val_near_copy_share'])} of validation images have a training image within {leak['threshold_mad']:g} "
+      f"grey levels, against only {pct(leak['near_copy_share'])} of test images; the median distance is "
+      f"{leak['median_distance_val']:.1f} for validation and {leak['median_distance_test']:.1f} for test. "
+      "Validation letters come from the same Train folder as the training letters (including rotated and shifted "
+      "copies of the same original), so validation partly measures recognition of letters the model has nearly "
+      "seen. The creators' Test folder is genuinely more different. The test result is therefore the honest "
+      "estimate, and keeping the official Test folder separate (instead of re-splitting everything at random) was "
+      "the right choice. The baselines show the same pattern even more strongly (random forest: "
+      f"{pct(baselines_val['random_forest']['val_acc'])} validation, {pct(test['comparison']['random_forest']['test_acc'])} test).")
+    figure("leakage_check.png", "Distance from sampled validation and test images to their closest training image. "
+           "Validation images (grey) are much closer to the training data than test images.", 12.5)
+n_norm, n_rev, n_cor = cm.sum(1)
+P("Analysis of the test results:", bold_lead=None)
+bullets([
+    ("The CNN clearly beats both baselines. ", f"Accuracy {pct(test['test_acc'])} versus "
+     f"{pct(test['comparison']['random_forest']['test_acc'])} (random forest) and "
+     f"{pct(test['comparison']['logreg_pca100']['test_acc'])} (logistic regression). Learned convolutional "
+     "features capture stroke direction and shape, which pixel-level models cannot do reliably when letters "
+     "are shifted, slanted or written with different pen widths."),
+    ("All three classes are recognised in a balanced way. ", f"Macro-F1 is {test['test_macro_f1']:.3f} and every "
+     f"class has F1 above {min(pc[c]['f1-score'] for c in CLASSES):.2f}. Corrected letters are easiest "
+     f"(F1 {pc['Corrected']['f1-score']:.3f}): overwriting and extra strokes are visually distinctive."),
+    ("Most errors are Reversal letters read as Normal. ", f"{cm[1, 0]:,} of {n_rev:,} reversed letters "
+     f"({pct(cm[1, 0] / n_rev)}) were called Normal, and {cm[0, 1]:,} normal letters ({pct(cm[0, 1] / n_norm)}) were "
+     "called Reversal. The grid of most confident errors above shows why: many reversed letters look exactly like a different, correctly written "
+     "letter (a mirrored J looks like an L, a mirrored d like a b, a mirrored N like a slanted N). Without knowing "
+     "which letter the child intended, a single-letter image is genuinely ambiguous. In a real screening the "
+     "learner writes known target letters (dictation), so the expected letter is known and this ambiguity "
+     "largely disappears."),
+    ("Ranking quality is high. ", f"The one-vs-rest ROC AUC is {test['per_class_auc']['Normal']:.3f} (Normal), "
+     f"{test['per_class_auc']['Reversal']:.3f} (Reversal) and {test['per_class_auc']['Corrected']:.3f} (Corrected), "
+     "so the threshold of the screening flag can be moved to trade sensitivity against false alarms."),
+    ("For screening this is a usable signal. ", "Because the learner-level flag averages over many letters, a "
+     "letter-level error rate of about 9% still separates a learner with few reversals from one with many. "
+     "Missed reversals are the more costly error for screening, so a lower threshold for the Reversal class "
+     "would be chosen in practice. In the demo, a simulated learner with no reversed letters still gets about 8% of "
+     "letters flagged (false positives), and one with 40% gets about 42%; the Yellow threshold of 15% sits above "
+     "this false-positive floor."),
+])
 
 # ----------------------------------------------------------------- 8 system + demo
 H("9. From prediction to support: the full system and demo (step 8)")
 P("The trained CNN is the core of an end-to-end screening and intervention workflow:")
 bullets([
-    ("1. Capture. ", "The teacher photographs or scans a page on which the learner wrote letters (or uploads "
+    ("Capture. ", "The teacher photographs or scans a page on which the learner wrote letters (or uploads "
      "single-letter images). For the demo, a 'simulated learner' can be built from held-out test letters with a "
      "chosen share of reversed letters."),
-    ("2. Segment. ", "The page is split into letters with connected-component analysis (SciPy), sorted into "
+    ("Segment. ", "The page is split into letters with connected-component analysis (SciPy), sorted into "
      "reading order, and every letter gets exactly the same preprocessing as the training data."),
-    ("3. Classify. ", "The CNN labels each letter Normal, Reversal or Corrected with a confidence."),
-    ("4. Flag. ", "The learner-level score is the share of letters classed as Reversal or Corrected. In the demo, "
+    ("Classify. ", "The CNN labels each letter Normal, Reversal or Corrected with a confidence."),
+    ("Flag. ", "The learner-level score is the share of letters classed as Reversal or Corrected. In the demo, "
      "below 15% is Green, 15-30% Yellow and 30% or more Red. These thresholds are placeholders and have not "
      "been clinically validated; they would have to be set from real, learner-level South African data."),
-    ("5. Recommend. ", "A retrieval-augmented reading tutor retrieves relevant guidance and generates activities "
+    ("Recommend. ", "A retrieval-augmented reading tutor retrieves relevant guidance and generates activities "
      "(below)."),
-    ("6. Monitor. ", "Each screening is stored with the learner code, so repeated screenings show whether the "
+    ("Monitor. ", "Each screening is stored with the learner code, so repeated screenings show whether the "
      "share of reversed letters falls after intervention."),
-    ("7. Human decision. ", "The dashboard states clearly that the result is not a diagnosis. Referral goes through "
+    ("Human decision. ", "The dashboard states clearly that the result is not a diagnosis. Referral goes through "
      "the school-based support team to an educational psychologist or speech-language therapist."),
-])
-figure("app_screenshot.png", "Streamlit demo dashboard: risk flag, letter-level predictions, RAG tutor output and "
-       "progress tracker (simulated learner from the test set)", 16)
+], style="List Number")
+figure("app_screenshot.png", "Streamlit demo dashboard for a simulated learner (60 held-out test letters, 30% "
+       "reversed or corrected): risk flag, letter-level predictions with confidence, and RAG tutor output", 16)
+figure("app_progress.png", "Progress tracker: every screening of a learner code is logged so repeated screenings "
+       "can be compared", 13)
 H("RAG reading tutor", 2)
 P("The generative part of the system follows the retrieval-augmented generation pattern. A small knowledge base "
   "of intervention guides (letter reversals, phonics rules, structured multisensory literacy, and the South "
@@ -473,13 +520,13 @@ code_block("1. Reading passage: Dad has a big red bed. The dog digs by the bed. 
            "5. Feedback in isiZulu (LLM mode; checked by a speaker of the language before use)")
 H("Demo script for the presentation", 2)
 bullets([
-    "Run 05_evaluate.py output: show the confusion matrix and the model comparison (1 minute).",
-    "streamlit run app.py: choose 'Simulated learner', set 10% reversed letters and run (Green).",
-    "Change to 40% reversed letters, run again (Red), and show the letter grid and the RAG activities.",
+    "Show the graphs from 05_evaluate.py: the confusion matrix and the model comparison (1 minute).",
+    "Start streamlit run app.py, choose 'Simulated learner', set the reversed/corrected share to 0 and run (Green).",
+    "Change the share to 0.40, run again (Red), and show the letter grid and the RAG activities.",
     "Switch the home language to isiZulu and show that the tutor request changes.",
     "Upload a photo of handwritten letters to show segmentation on real input.",
     "Point out the progress tracker and the 'not a diagnosis' notice.",
-], style="List Number")
+], style="List Number 2")
 
 # ----------------------------------------------------------------- 9 ethics + limitations
 H("10. Ethics, limitations and future work")
@@ -508,7 +555,21 @@ P("Future work: (1) add the speech module proposed in our plan, where a learner 
 
 # ----------------------------------------------------------------- 10 conclusion
 H("11. Conclusion")
-# __CONCLUSION__
+P(f"We set out to show how AI can address an African challenge: dyslexia is common but rarely identified in "
+  "South African schools, where tests in learners' languages, specialists and teacher time are all scarce. Using a "
+  "public dataset of children's handwriting, we cleaned out "
+  f"{cleaning['raw_images'] - cleaning['kept_images']:,} duplicate or leaked images, tuned a convolutional "
+  f"neural network and reached {pct(test['test_acc'])} accuracy and {test['test_macro_f1']:.3f} macro-F1 on "
+  f"{test['test_images']:,} unseen letters, far above classical baselines "
+  f"({pct(test['comparison']['random_forest']['test_acc'])} and {pct(test['comparison']['logreg_pca100']['test_acc'])}). "
+  "We also showed that validation accuracy on this dataset is inflated by near-copies, so results must be judged "
+  "on the separate test folder.")
+P("Detection alone is not enough, so the model is embedded in a workflow that a teacher can use: photograph the "
+  "writing, get a Green/Yellow/Red flag, receive RAG-generated activities matched to the difficulty and home "
+  "language, and track progress over time, with the final decision left to people. Before real use, the model "
+  "must be validated on consented South African handwriting with learner-level labels, and the flag thresholds "
+  "must be set from that data. Within those limits, the project shows that a small, CPU-friendly model trained "
+  "on open data can make early dyslexia screening cheaper, faster and more equitable.")
 
 # ----------------------------------------------------------------- references
 H("References")
@@ -558,19 +619,25 @@ code_block("pip install -r requirements.txt\n"
            "python 01_prepare_data.py\npython 02_baselines.py\npython 03_tune_hyperparameters.py\n"
            "python 04_train_cnn.py\npython 05_evaluate.py\npython 06_leakage_check.py\n"
            "streamlit run app.py\npython build_report.py")
-P("Excerpt of the model definition (common.py):", bold_lead=None)
+P("Excerpt of the model definition (common.py, shortened):", bold_lead=None)
 code_block('''class DyslexiaCNN(nn.Module):
     def __init__(self, width=32, dropout=0.3, n_classes=3):
         super().__init__()
+
         def block(c_in, c_out):
             return nn.Sequential(
-                nn.Conv2d(c_in, c_out, 3, padding=1, bias=False), nn.BatchNorm2d(c_out), nn.ReLU(),
-                nn.Conv2d(c_out, c_out, 3, padding=1, bias=False), nn.BatchNorm2d(c_out), nn.ReLU(),
+                nn.Conv2d(c_in, c_out, 3, padding=1), nn.BatchNorm2d(c_out),
+                nn.ReLU(),
+                nn.Conv2d(c_out, c_out, 3, padding=1), nn.BatchNorm2d(c_out),
+                nn.ReLU(),
                 nn.MaxPool2d(2), nn.Dropout2d(dropout / 2))
+
         w = width
-        self.features = nn.Sequential(block(1, w), block(w, 2 * w), block(2 * w, 4 * w))
-        self.classifier = nn.Sequential(nn.Flatten(), nn.Linear(4 * w * 4 * 4, 256), nn.ReLU(),
-                                        nn.Dropout(dropout), nn.Linear(256, n_classes))''')
+        self.features = nn.Sequential(
+            block(1, w), block(w, 2 * w), block(2 * w, 4 * w))
+        self.classifier = nn.Sequential(
+            nn.Flatten(), nn.Linear(4 * w * 4 * 4, 256), nn.ReLU(),
+            nn.Dropout(dropout), nn.Linear(256, n_classes))''')
 
 
 def main():

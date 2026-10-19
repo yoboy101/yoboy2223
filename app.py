@@ -130,7 +130,10 @@ else:
     ups = st.file_uploader("Single-letter images", type=["png", "jpg", "jpeg"], accept_multiple_files=True)
     letters = [preprocess_array(np.asarray(Image.open(u).convert("L"), dtype=np.uint8)) for u in ups or []]
 
-if letters and st.button("Run screening", type="primary", use_container_width=True):
+# ?demo=1 runs one screening automatically (used for presentation screenshots).
+auto_demo = st.query_params.get("demo") == "1" and "last" not in st.session_state
+clicked = st.button("Run screening", type="primary", use_container_width=True)
+if letters and (clicked or auto_demo):
     proba = predict_proba(model, np.stack(letters))
     pred = proba.argmax(1)
     counts = {c: int((pred == k).sum()) for k, c in enumerate(CLASSES)}
@@ -160,9 +163,9 @@ if res:
         st.subheader("Letters by predicted class")
         st.bar_chart(pd.Series(res["counts"]))
         st.subheader("Classified letters")
-        cols = st.columns(10)
-        for i, (img, p) in enumerate(zip(res["letters"][:40], res["pred"][:40])):
-            cols[i % 10].image(img, caption=f"{CLASSES[p][:3]} {res['proba'][i, p]:.0%}", width=48)
+        shown = range(min(40, len(res["pred"])))
+        st.image([res["letters"][i] for i in shown], width=56,
+                 caption=[f"{CLASSES[res['pred'][i]][:3]} {res['proba'][i, res['pred'][i]]:.0%}" for i in shown])
     with right:
         st.subheader("Personalised activities (RAG tutor)")
         out = tutor({"reversal_rate": res["reversal_rate"], "corrected_rate": res["corrected_rate"],

@@ -1,0 +1,49 @@
+{
+  "model": "CNN",
+  "test_images": 55389,
+  "test_acc": 0.9087363917023236,
+  "test_macro_f1": 0.9099788600760551,
+  "per_class_auc": {
+    "Normal": 0.9685168133510792,
+    "Reversal": 0.9846430472258626,
+    "Corrected": 0.9911178428085754
+  },
+  "binary_indicative_vs_normal": {
+    "auc": 0.9685169155131613,
+    "accuracy": 0.9124735958403293
+  },
+  "comparison": {
+    "CNN": {
+      "test_acc": 0.9087363917023236,
+      "test_macro_f1": 0.9099788600760551
+    },
+    "logreg_pca100": {
+      "test_acc": 0.6447670115004784,
+      "test_macro_f1": 0.6451088189661217
+    },
+    "random_forest": {
+      "test_acc": 0.802325371463648,
+      "test_macro_f1": 0.8023374799502577
+    }
+  },
+  "per_class": {
+    "Normal": {
+      "precision": 0.8583997262818319,
+      "recall": 0.9005230232796636,
+      "f1-score": 0.878956983058482,
+      "support": 19502.0
+    },
+    "Reversal": {
+      "precision": 0.9232003668042182,
+      "recall": 0.9045880833380131,
+      "f1-score": 0.9137994610693518,
+      "support": 17807.0
+    },
+    "Corrected": {
+      "precision": 0.9532090149868436,
+      "recall": 0.9216814159292035,
+      "f1-score": 0.9371801361003318,
+      "support": 18080.0
+    }
+  }
+}
