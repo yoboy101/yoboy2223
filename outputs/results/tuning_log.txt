@@ -17,3 +17,22 @@
 === dropout=0.5: {'width': 32, 'dropout': 0.5, 'lr': 0.001, 'batch_size': 256, 'use_augmentation': True}
 {"epoch": 1, "train_loss": 0.8953, "train_acc": 0.5879, "val_loss": 0.6578, "val_acc": 0.7145, "val_macro_f1": 0.7073, "lr": 0.0007, "seconds": 63.1596}
 {"epoch": 2, "train_loss": 0.6589, "train_acc": 0.7165, "val_loss": 0.5896, "val_acc": 0.7595, "val_macro_f1": 0.7535, "lr": 0.0003, "seconds": 56.3062}
+{"epoch": 3, "train_loss": 0.5927, "train_acc": 0.7523, "val_loss": 0.5182, "val_acc": 0.79, "val_macro_f1": 0.7821, "lr": 0.0, "seconds": 55.3744}
+
+=== width=16: {'width': 16, 'dropout': 0.3, 'lr': 0.001, 'batch_size': 256, 'use_augmentation': True}
+{"epoch": 1, "train_loss": 0.8044, "train_acc": 0.6162, "val_loss": 0.6218, "val_acc": 0.727, "val_macro_f1": 0.7211, "lr": 0.0007, "seconds": 23.0594}
+{"epoch": 2, "train_loss": 0.6249, "train_acc": 0.7251, "val_loss": 0.5066, "val_acc": 0.7891, "val_macro_f1": 0.7834, "lr": 0.0003, "seconds": 22.582}
+{"epoch": 3, "train_loss": 0.5647, "train_acc": 0.7573, "val_loss": 0.4916, "val_acc": 0.7923, "val_macro_f1": 0.784, "lr": 0.0, "seconds": 25.3231}
+
+=== no augmentation: {'width': 32, 'dropout': 0.3, 'lr': 0.001, 'batch_size': 256, 'use_augmentation': False}
+{"epoch": 1, "train_loss": 0.814, "train_acc": 0.6284, "val_loss": 0.6215, "val_acc": 0.7304, "val_macro_f1": 0.7294, "lr": 0.0007, "seconds": 71.9518}
+{"epoch": 2, "train_loss": 0.5276, "train_acc": 0.7819, "val_loss": 0.4394, "val_acc": 0.8237, "val_macro_f1": 0.8192, "lr": 0.0003, "seconds": 59.6298}
+{"epoch": 3, "train_loss": 0.4406, "train_acc": 0.824, "val_loss": 0.3892, "val_acc": 0.8447, "val_macro_f1": 0.8427, "lr": 0.0, "seconds": 65.366}
+     experiment  width  dropout     lr  batch_size  use_augmentation  val_acc  val_macro_f1  val_loss    seconds
+        default     32      0.3 0.0010         256              True 0.814089      0.808242  0.466021 174.340618
+        lr=3e-3     32      0.3 0.0030         256              True 0.697359      0.681599  0.689541 171.860826
+        lr=3e-4     32      0.3 0.0003         256              True 0.815407      0.812565  0.460428 162.762661
+    dropout=0.5     32      0.5 0.0010         256              True 0.790040      0.782137  0.518215 174.840177
+       width=16     16      0.3 0.0010         256              True 0.792291      0.784036  0.491641  70.964383
+no augmentation     32      0.3 0.0010         256             False 0.844671      0.842747  0.389174 196.947582
+Best: no augmentation {'width': 32, 'dropout': 0.3, 'lr': 0.001, 'batch_size': 256, 'use_augmentation': False}

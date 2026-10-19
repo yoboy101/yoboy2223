@@ -310,9 +310,12 @@ table(["Split", *CLASSES, "Total"],
         f"{splits.loc[s].sum():,}"] for s in ("train", "val", "test")],
       [3.2, 3, 3, 3, 3], caption="Images per split after cleaning")
 figure("class_distribution.png", "Class distribution per split after cleaning", 12.5)
-P("Class imbalance is moderate, so the loss function is weighted by inverse class frequency. Augmentation "
-  "(small random rotations up to 10 degrees, shifts up to 8% and zoom up to 10%) is applied to training batches only. "
-  "Horizontal and vertical flips are deliberately not used: flipping a normal letter creates a reversed letter, "
+P("Class imbalance is moderate, so the loss function is weighted by inverse class frequency. Data augmentation "
+  "(small random rotations up to 10 degrees, shifts up to 8% and zoom up to 10%, applied to training batches only) "
+  "was implemented and tested as a hyperparameter in Section 6"
+  + (" and is used in the final model. " if best_cfg["use_augmentation"] else
+     "; it did not help on this dataset, so the final model is trained without it. ")
+  + "Horizontal and vertical flips are deliberately never used: flipping a normal letter creates a reversed letter, "
   "which would corrupt the very labels the model must learn.")
 
 # ----------------------------------------------------------------- 4 model
@@ -352,7 +355,26 @@ table(["Experiment", "Filters", "Dropout", "LR", "Batch", "Augment", "Val acc", 
         pct(r.val_acc), f"{r.val_macro_f1:.4f}", f"{r.seconds:.0f}"] for r in tun.itertuples()],
       [3.2, 1.4, 1.5, 1.4, 1.3, 1.6, 1.7, 2.2, 1.7], caption="Tuning runs, sorted by validation macro-F1", font=8.5)
 figure("tuning_results.png", "Validation macro-F1 of each tuning run (selected configuration in orange)", 14)
-# __TUNING_ANALYSIS__
+tbest = tun.iloc[0]
+tdef = tuning.set_index("experiment").loc["default"]
+P("What the experiments show:", bold_lead=None)
+bullets([
+    ("Learning rate. ", f"1e-3 and 3e-4 perform almost the same (macro-F1 "
+     f"{tuning.set_index('experiment').loc['default', 'val_macro_f1']:.3f} vs "
+     f"{tuning.set_index('experiment').loc['lr=3e-4', 'val_macro_f1']:.3f}); 3e-3 is clearly too high "
+     f"({tuning.set_index('experiment').loc['lr=3e-3', 'val_macro_f1']:.3f}) and training becomes unstable."),
+    ("Capacity and regularisation. ", "Halving the filters (width 16) or raising dropout to 0.5 both cost about "
+     "two to three F1 points, so the default network is not over-sized for this data."),
+    ("Augmentation. ", f"Switching augmentation off gave the best score ({tbest.val_macro_f1:.3f}, "
+     f"+{tbest.val_macro_f1 - tdef.val_macro_f1:.3f}). Within a short budget, augmented batches are harder to fit, "
+     "and the dataset already contains many rotated and shifted copies of the Corrected letters, so extra "
+     "geometric augmentation adds little. Augmentation remains in the code as an option because it may still "
+     "help a model meant for new writers and phone photos."),
+])
+P(f"Selected configuration: {best_cfg['width']} base filters, dropout {best_cfg['dropout']}, learning rate "
+  f"{best_cfg['lr']:g}, batch size {best_cfg['batch_size']}, augmentation "
+  f"{'on' if best_cfg['use_augmentation'] else 'off'}. Caveat: the runs used a short budget and a single seed, "
+  "so differences of about one F1 point are within run-to-run noise.")
 
 # ----------------------------------------------------------------- 6 training graphs
 H("7. Training graphs (step 6)")

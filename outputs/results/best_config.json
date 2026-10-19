@@ -1,0 +1,8 @@
+{
+  "chosen_from": "no augmentation",
+  "width": 32,
+  "dropout": 0.3,
+  "lr": 0.001,
+  "batch_size": 256,
+  "use_augmentation": false
+}
