@@ -1,0 +1,7 @@
+,count
+raw_images,208372
+unreadable_files,0
+duplicates_within_split,20455
+train_images_also_in_test,11457
+images_with_conflicting_labels,109
+kept_images,176809

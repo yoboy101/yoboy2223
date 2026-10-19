@@ -1,0 +1,4 @@
+split,Normal,Reversal,Corrected
+test,19502,17807,18080
+train,32875,33858,36474
+val,5802,5975,6436

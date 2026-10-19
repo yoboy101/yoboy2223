@@ -1,0 +1,19 @@
+
+=== default: {'width': 32, 'dropout': 0.3, 'lr': 0.001, 'batch_size': 256, 'use_augmentation': True}
+{"epoch": 1, "train_loss": 0.8667, "train_acc": 0.6104, "val_loss": 0.6519, "val_acc": 0.7241, "val_macro_f1": 0.7183, "lr": 0.0007, "seconds": 60.7165}
+{"epoch": 2, "train_loss": 0.5872, "train_acc": 0.7481, "val_loss": 0.5301, "val_acc": 0.7901, "val_macro_f1": 0.7864, "lr": 0.0003, "seconds": 57.6155}
+{"epoch": 3, "train_loss": 0.5155, "train_acc": 0.7873, "val_loss": 0.466, "val_acc": 0.8141, "val_macro_f1": 0.8082, "lr": 0.0, "seconds": 56.0086}
+
+=== lr=3e-3: {'width': 32, 'dropout': 0.3, 'lr': 0.003, 'batch_size': 256, 'use_augmentation': True}
+{"epoch": 1, "train_loss": 1.2789, "train_acc": 0.4338, "val_loss": 0.846, "val_acc": 0.6179, "val_macro_f1": 0.5912, "lr": 0.0022, "seconds": 59.8214}
+{"epoch": 2, "train_loss": 0.8132, "train_acc": 0.6297, "val_loss": 0.7351, "val_acc": 0.6752, "val_macro_f1": 0.6617, "lr": 0.0008, "seconds": 50.7198}
+{"epoch": 3, "train_loss": 0.7189, "train_acc": 0.681, "val_loss": 0.6895, "val_acc": 0.6974, "val_macro_f1": 0.6816, "lr": 0.0, "seconds": 61.3196}
+
+=== lr=3e-4: {'width': 32, 'dropout': 0.3, 'lr': 0.0003, 'batch_size': 256, 'use_augmentation': True}
+{"epoch": 1, "train_loss": 0.7555, "train_acc": 0.6534, "val_loss": 0.5481, "val_acc": 0.775, "val_macro_f1": 0.7755, "lr": 0.0002, "seconds": 57.2658}
+{"epoch": 2, "train_loss": 0.5776, "train_acc": 0.7567, "val_loss": 0.4604, "val_acc": 0.8154, "val_macro_f1": 0.8126, "lr": 0.0001, "seconds": 57.6194}
+{"epoch": 3, "train_loss": 0.5338, "train_acc": 0.7791, "val_loss": 0.4565, "val_acc": 0.8145, "val_macro_f1": 0.8087, "lr": 0.0, "seconds": 47.8774}
+
+=== dropout=0.5: {'width': 32, 'dropout': 0.5, 'lr': 0.001, 'batch_size': 256, 'use_augmentation': True}
+{"epoch": 1, "train_loss": 0.8953, "train_acc": 0.5879, "val_loss": 0.6578, "val_acc": 0.7145, "val_macro_f1": 0.7073, "lr": 0.0007, "seconds": 63.1596}
+{"epoch": 2, "train_loss": 0.6589, "train_acc": 0.7165, "val_loss": 0.5896, "val_acc": 0.7595, "val_macro_f1": 0.7535, "lr": 0.0003, "seconds": 56.3062}
